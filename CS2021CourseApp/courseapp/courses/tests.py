@@ -1,5 +1,5 @@
 from django.test import TestCase
-from courses.models import Category, Course
+from courseapp.courses.models import Course, Category
 
 if __name__ == '__main__':
     Category.objects.bulk_create([

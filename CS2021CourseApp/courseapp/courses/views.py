@@ -1,9 +1,9 @@
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, parsers, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from courses import serializers, paginators
-from courses.models import Category, Course, Lesson
+from courseapp.courses import serializers, paginators
+from courseapp.courses.models import Category, Course, Lesson, Comment
 
 
 class CategoryViewSet(viewsets.ViewSet, generics.ListAPIView):
@@ -40,3 +40,14 @@ class CourseViewSet(viewsets.ViewSet, generics.ListAPIView):
 class LessonViewSet(viewsets.ViewSet, generics.RetrieveAPIView):
     queryset = Lesson.objects.filter(active=True).all()
     serializer_class = serializers.LessonSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.action in ['add_comment']:
+            return [permissions.IsAuthenticated()]
+
+    @action(methods=['post'], url_path='comments', detail=True)
+    def add_comment(self, request, pk):
+        c = Comment.object.create(user=request.user, lesson=self.get_object(), content=request.data.get('content'))
+
+        return Response(serializers.CommentSerializer(c).data, status=status.HTTP_201_CREATED)
